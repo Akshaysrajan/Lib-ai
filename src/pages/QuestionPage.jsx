@@ -16,7 +16,7 @@ const QuestionPage = () => {
     setInputValue(questionText);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!inputValue.trim()) return;
 
     setMessages((prev) => [...prev, { isUser: true, text: inputValue }]);
@@ -24,16 +24,41 @@ const QuestionPage = () => {
     setIsTyping(true);
     setHasSubmittedFirstQuery(true);
 
-    setTimeout(() => {
+      console.log(inputValue);
+
+
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/chat_assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: inputValue }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+      setTimeout(() => {
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            isUser: false,
+            text: data.response, // Assuming the API returns a field called 'response'
+          },
+        ]);
+      }, 2000);
+    } catch (error) {
+      console.error('Error fetching data:', error);
       setIsTyping(false);
       setMessages((prev) => [
         ...prev,
         {
           isUser: false,
-          text: "This is a sample response to question. In a real application, this would be replaced with an actual API response from AI service.",
+          text: "Sorry, there was an error processing your request.",
         },
       ]);
-    }, 2000);
+    }
 
     setInputValue("");
   };
